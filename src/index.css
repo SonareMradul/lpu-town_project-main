@@ -84,6 +84,7 @@ select {
 button {
   font-family: inherit;
   outline: none;
+  -webkit-user-select:none;
   user-select: none;
   cursor: pointer;
 }
