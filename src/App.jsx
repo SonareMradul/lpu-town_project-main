@@ -1,77 +1,92 @@
+
 // src/App.jsx
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom"
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom"
+import { lazy, Suspense } from "react"
+
 import { AuthProvider, useAuth } from "./hooks/useAuth.jsx"
 import { ThemeProvider } from "./hooks/useTheme.jsx"
 
-import Login          from "./pages/Login"
-import Register       from "./pages/Register"
-import Home           from "./pages/Home"
-import Reels          from "./pages/Reels"
-import Upload         from "./pages/Upload"
-import Profile        from "./pages/Profile"
-import Search         from "./pages/Search"
-import Notifications  from "./pages/Notifications"
-import Messages       from "./pages/Messages"
-import Events         from "./pages/Events"
-import UserProfile    from "./pages/UserProfile"
-import Landing        from "./pages/Landing"
-import Communities    from "./pages/Communities"
-import CommunityDetail from "./pages/CommunityDetail"
-import RoommateFinder from "./pages/RoommateFinder"
-import LostFound      from "./pages/LostFound"
+/* ══ LAZY LOADING (Performance Boost) ══ */
+const Login           = lazy(() => import("./pages/Login"))
+const Register        = lazy(() => import("./pages/Register"))
+const Home            = lazy(() => import("./pages/Home"))
+const Reels           = lazy(() => import("./pages/Reels"))
+const Upload          = lazy(() => import("./pages/Upload"))
+const Profile         = lazy(() => import("./pages/Profile"))
+const Search          = lazy(() => import("./pages/Search"))
+const Notifications   = lazy(() => import("./pages/Notifications"))
+const Messages        = lazy(() => import("./pages/Messages"))
+const Events          = lazy(() => import("./pages/Events"))
+const UserProfile     = lazy(() => import("./pages/UserProfile"))
+const Landing         = lazy(() => import("./pages/Landing"))
+const Communities     = lazy(() => import("./pages/Communities"))
+const CommunityDetail = lazy(() => import("./pages/CommunityDetail"))
+const RoommateFinder  = lazy(() => import("./pages/RoommateFinder"))
+const LostFound       = lazy(() => import("./pages/LostFound"))
 
-function ProtectedRoute({ children }) {
-  const { user, loading } = useAuth()
-  if (loading) return <LoadingScreen />
-  if (!user)   return <Navigate to="/" replace />
-  return children
-}
-
-function GuestRoute({ children }) {
-  const { user, loading } = useAuth()
-  if (loading) return <LoadingScreen />
-  if (user)    return <Navigate to="/home" replace />
-  return children
-}
-
+/* ══ LOADING SCREEN ══ */
 function LoadingScreen() {
   return (
-    <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--bg-page)" }}>
-      <div style={{ width:40, height:40, borderRadius:"50%", border:"3px solid rgba(99,102,241,0.15)", borderTopColor:"#6366f1", animation:"spin 0.7s linear infinite" }} />
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    <div className="loader-container">
+      <div className="loader" />
     </div>
   )
 }
 
+/* ══ ROUTE GUARDS ══ */
+function ProtectedLayout() {
+  const { user, loading } = useAuth()
+  if (loading) return <LoadingScreen />
+  if (!user) return <Navigate to="/" replace />
+  return <Outlet />
+}
+
+function GuestLayout() {
+  const { user, loading } = useAuth()
+  if (loading) return <LoadingScreen />
+  if (user) return <Navigate to="/home" replace />
+  return <Outlet />
+}
+
+/* ══ ROUTES ══ */
 function AppRoutes() {
-  const location = useLocation()
   return (
-    <div key={location.pathname} style={{ minHeight:"100vh" }}>
-      <Routes location={location}>
-        <Route path="/"           element={<GuestRoute><Landing /></GuestRoute>} />
-        <Route path="/login"      element={<GuestRoute><Login /></GuestRoute>} />
-        <Route path="/register"   element={<GuestRoute><Register /></GuestRoute>} />
+    <Suspense fallback={<LoadingScreen />}>
+      <Routes>
 
-        <Route path="/home"          element={<ProtectedRoute><Home /></ProtectedRoute>} />
-        <Route path="/reels"         element={<ProtectedRoute><Reels /></ProtectedRoute>} />
-        <Route path="/upload"        element={<ProtectedRoute><Upload /></ProtectedRoute>} />
-        <Route path="/profile"       element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        <Route path="/user/:id"      element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
-        <Route path="/search"        element={<ProtectedRoute><Search /></ProtectedRoute>} />
-        <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-        <Route path="/messages"      element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-        <Route path="/events"        element={<ProtectedRoute><Events /></ProtectedRoute>} />
-        <Route path="/communities"   element={<ProtectedRoute><Communities /></ProtectedRoute>} />
-        <Route path="/community/:slug" element={<ProtectedRoute><CommunityDetail /></ProtectedRoute>} />
-        <Route path="/roommates"     element={<ProtectedRoute><RoommateFinder /></ProtectedRoute>} />
-        <Route path="/lostfound"     element={<ProtectedRoute><LostFound /></ProtectedRoute>} />
+        {/* Guest Routes */}
+        <Route element={<GuestLayout />}>
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+        </Route>
 
+        {/* Protected Routes */}
+        <Route element={<ProtectedLayout />}>
+          <Route path="/home" element={<Home />} />
+          <Route path="/reels" element={<Reels />} />
+          <Route path="/upload" element={<Upload />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/user/:id" element={<UserProfile />} />
+          <Route path="/search" element={<Search />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/messages" element={<Messages />} />
+          <Route path="/events" element={<Events />} />
+          <Route path="/communities" element={<Communities />} />
+          <Route path="/community/:slug" element={<CommunityDetail />} />
+          <Route path="/roommates" element={<RoommateFinder />} />
+          <Route path="/lostfound" element={<LostFound />} />
+        </Route>
+
+        {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
+
       </Routes>
-    </div>
+    </Suspense>
   )
 }
 
+/* ══ MAIN APP ══ */
 export default function App() {
   return (
     <BrowserRouter>
