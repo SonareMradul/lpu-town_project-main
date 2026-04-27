@@ -1,0 +1,1 @@
+I worked as a UI/UX designer, focusing on creating simple, user-friendly, and visually consistent interfaces. I designed wireframes and prototypes using Figma and ensured smooth user flows. I also collaborated with developers to make sure the design was practical and easy to implement.
